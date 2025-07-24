@@ -42,11 +42,12 @@ export default function App() {
       return;
     }
 
-    const keys = Object.keys(table).map(k => parseFloat(k));
-    const closest = keys.find(k => Math.abs(k - index) < 0.0001);
+    const tableKeys = Object.keys(table).map(key => parseFloat(key));
+    const match = tableKeys.find(key => Math.abs(key - index) < 0.001);
 
-    if (closest !== undefined) {
-      const output = `${t.result}: ${table[closest]}%`;
+    if (match !== undefined) {
+      const concentration = table[match];
+      const output = `${t.result}: ${concentration}%`;
       setResult(output);
       setHistory([...history, `${index} → ${output}`]);
     } else {
