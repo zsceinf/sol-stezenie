@@ -36,45 +36,65 @@ export default function App() {
   const t = translations[lang];
 
   const calculate = () => {
-    const index = parseFloat(refractiveIndex.replace(",", "."));
-    if (isNaN(index)) {
-      setResult(t.error);
-      return;
-    }
+    const input = refractiveIndex.replace(/,/g, ".").trim();
+    const exactMatch = Object.keys(table).find(key => key === input);
 
-    const tableKeys = Object.keys(table).map(key => parseFloat(key));
-    const match = tableKeys.find(key => Math.abs(key - index) < 0.001);
-
-    if (match !== undefined) {
-      const concentration = table[match];
+    if (exactMatch) {
+      const concentration = table[exactMatch];
       const output = `${t.result}: ${concentration}%`;
       setResult(output);
-      setHistory([...history, `${index} → ${output}`]);
+      setHistory([...history, `${input} → ${output}`]);
     } else {
       setResult(t.noData);
     }
   };
 
   return (
-    <div style={{ padding: 20, fontFamily: "Arial" }}>
-      <h1>{t.title}</h1>
-      <select value={lang} onChange={e => setLang(e.target.value)}>
-        <option value="pl">🇵🇱 Polski</option>
-        <option value="en">🇬🇧 English</option>
-      </select>
-      <input
-        type="text"
-        placeholder={t.placeholder}
-        value={refractiveIndex}
-        onChange={e => setRefractiveIndex(e.target.value)}
-        style={{ display: "block", width: "100%", margin: "10px 0", padding: 8 }}
-      />
-      <button onClick={calculate} style={{ marginTop: 10 }}>{t.calculate}</button>
-      <p style={{ marginTop: 20 }}>{result}</p>
-      <h3>Historia</h3>
-      <ul>
-        {history.map((entry, i) => <li key={i}>{entry}</li>)}
-      </ul>
+    <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-md bg-gray-100 rounded-2xl shadow-lg p-6">
+        <h1 className="text-2xl font-bold text-center mb-4">{t.title}</h1>
+        <div className="mb-4">
+          <select
+            value={lang}
+            onChange={e => setLang(e.target.value)}
+            className="w-full p-2 rounded-md border border-gray-300"
+          >
+            <option value="pl">🇵🇱 Polski</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+
+        <div className="flex items-center space-x-4 mb-4">
+          <input
+            type="text"
+            placeholder={t.placeholder}
+            value={refractiveIndex}
+            onChange={e => setRefractiveIndex(e.target.value)}
+            className="flex-1 p-3 rounded-md border border-gray-300"
+          />
+          <span className="min-w-[130px] text-center font-medium text-gray-800">
+            {result}
+          </span>
+        </div>
+
+        <button
+          onClick={calculate}
+          className="w-full bg-blue-500 text-white p-3 rounded-md font-semibold hover:bg-blue-600"
+        >
+          {t.calculate}
+        </button>
+
+        {history.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-md font-semibold mb-2">Historia</h3>
+            <ul className="list-disc list-inside space-y-1">
+              {history.map((entry, i) => (
+                <li key={i}>{entry}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
