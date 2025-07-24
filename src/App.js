@@ -1,79 +1,79 @@
 import React, { useState } from "react";
 
+const translations = {
+  pl: {
+    title: "Kalkulator stężenia",
+    placeholder: "Współczynnik załamania (np. 1.338)",
+    calculate: "Oblicz",
+    error: "Niepoprawny współczynnik.",
+    noData: "Brak danych dla podanego współczynnika.",
+    result: "Stężenie roztworu",
+  },
+  en: {
+    title: "Concentration Calculator",
+    placeholder: "Refractive index (e.g. 1.338)",
+    calculate: "Calculate",
+    error: "Invalid index.",
+    noData: "No data for given index.",
+    result: "Solution concentration",
+  }
+};
+
 export default function App() {
   const [refractiveIndex, setRefractiveIndex] = useState("");
-  const [hasFinalConcentration, setHasFinalConcentration] = useState(false);
   const [result, setResult] = useState("");
+  const [history, setHistory] = useState([]);
+  const [lang, setLang] = useState("pl");
 
   const table = {
     1.336: 2,
-    1.338: 4,
+    1.339: 4,
     1.343: 6,
     1.347: 8,
-    1.35: 10,
+    1.35: 10
   };
 
+  const t = translations[lang];
+
   const calculate = () => {
-    const index = parseFloat(refractiveIndex);
+    const index = parseFloat(refractiveIndex.replace(",", "."));
     if (isNaN(index)) {
-      setResult("Niepoprawny współczynnik.");
+      setResult(t.error);
       return;
     }
 
-    if (hasFinalConcentration) {
-      const min = (index - 0.002).toFixed(3);
-      const max = (index + 0.004).toFixed(3);
-      setResult(`Zakres współczynnika: ${min} - ${max}`);
+    const keys = Object.keys(table).map(k => parseFloat(k));
+    const closest = keys.find(k => Math.abs(k - index) < 0.0001);
+
+    if (closest !== undefined) {
+      const output = `${t.result}: ${table[closest]}%`;
+      setResult(output);
+      setHistory([...history, `${index} → ${output}`]);
     } else {
-      const keys = Object.keys(table)
-        .map((k) => parseFloat(k))
-        .sort((a, b) => a - b);
-
-      for (let i = 0; i < keys.length - 1; i++) {
-        const lower = keys[i];
-        const upper = keys[i + 1];
-
-        if (index >= lower && index <= upper) {
-          const lowerConc = table[lower];
-          const upperConc = table[upper];
-          const ratio = (index - lower) / (upper - lower);
-          const interpolated = lowerConc + ratio * (upperConc - lowerConc);
-          setResult(`Szacowane stężenie: ${interpolated.toFixed(2)}%`);
-          return;
-        }
-      }
-      setResult("Brak danych dla podanego współczynnika.");
+      setResult(t.noData);
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#f9f9f9" }}>
-      <div style={{ maxWidth: "400px", width: "100%", padding: "2rem", backgroundColor: "#fff", borderRadius: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1rem" }}>Kalkulator stężenia</h1>
-        <input
-          type="text"
-          placeholder="Współczynnik załamania (np. 1.338)"
-          value={refractiveIndex}
-          onChange={(e) => setRefractiveIndex(e.target.value)}
-          style={{ width: "100%", padding: "0.5rem", marginBottom: "1rem", borderRadius: "8px", border: "1px solid #ccc" }}
-        />
-        <label style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
-          <input
-            type="checkbox"
-            checked={hasFinalConcentration}
-            onChange={() => setHasFinalConcentration(!hasFinalConcentration)}
-            style={{ marginRight: "0.5rem" }}
-          />
-          Czy roztwór ma końcowe stężenie?
-        </label>
-        <button
-          onClick={calculate}
-          style={{ width: "100%", backgroundColor: "#007bff", color: "white", padding: "0.5rem", borderRadius: "8px", border: "none", fontWeight: "bold" }}
-        >
-          Oblicz
-        </button>
-        {result && <p style={{ marginTop: "1rem", textAlign: "center" }}>{result}</p>}
-      </div>
+    <div style={{ padding: 20, fontFamily: "Arial" }}>
+      <h1>{t.title}</h1>
+      <select value={lang} onChange={e => setLang(e.target.value)}>
+        <option value="pl">🇵🇱 Polski</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+      <input
+        type="text"
+        placeholder={t.placeholder}
+        value={refractiveIndex}
+        onChange={e => setRefractiveIndex(e.target.value)}
+        style={{ display: "block", width: "100%", margin: "10px 0", padding: 8 }}
+      />
+      <button onClick={calculate} style={{ marginTop: 10 }}>{t.calculate}</button>
+      <p style={{ marginTop: 20 }}>{result}</p>
+      <h3>Historia</h3>
+      <ul>
+        {history.map((entry, i) => <li key={i}>{entry}</li>)}
+      </ul>
     </div>
   );
 }
